@@ -45,20 +45,20 @@
     - texlive-latex-extra
     - pandoc
 
-    r_packages:
-    - name: devtools
-    - name: pak
-    - name: rio
-    - name: tidyverse
-    - name: easystats
-    - name: fusen
-    - name: janitor
-    - name: renv
-    - name: shiny
-    - name: sinew
-    - name: attachment
-    - name: styler
-    - name: golem
+    # r_packages: TODO: seems to freeze sometimes
+    # - name: devtools
+    # - name: pak
+    # - name: rio
+    # - name: tidyverse
+    # - name: easystats
+    # - name: fusen
+    # - name: janitor
+    # - name: renv
+    # - name: shiny
+    # - name: sinew
+    # - name: attachment
+    # - name: styler
+    # - name: golem
 
     rstudio_user: fd # Replace with target RStudio user's name
 
