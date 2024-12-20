@@ -1,0 +1,7 @@
+# Install with ansible-galaxy install -r requirements.yml# Install a role from GitHub
+- name: r
+  src: https://github.com/Oefenweb/ansible-r
+
+  # Install a role from GitHub
+- name: rstudio-server
+  src: https://github.com/Oefenweb/ansible-rstudio-server

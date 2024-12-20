@@ -2,75 +2,72 @@
 - name: Setup R and RStudio Server on localhost
   hosts: localhost
   connection: local
-  roles:
-    - ~fd/.ansible/roles/ansible-r # This installs R
-    - ~fd/.ansible/roles/ansible-rstudio-server # This installs RStudio Server and deploys
+  roles: # Install with ansible-galaxy install -r requirements.yml
+  - r # Installs R
+  - rstudio-server # Installs RStudio Server and deploys
 
   vars:
     r_install_dev: true # Allow building R from source
 
     r_install:
-      # Extra dependencies
-      - build-essential
-      - libcurl4-openssl-dev
-      - libxml2-dev
-      - libssl-dev
-      - libfontconfig1-dev
-      - libbz2-dev
-      - liblzma-dev
-      - libpcre2-dev
-      - libpng-dev
-      - libjpeg-dev
-      - libtiff-dev
-      - libicu-dev
-      - libgmp-dev
-      - libgsl-dev
-      - libmagick++-dev
-      - zlib1g-dev
-      - libharfbuzz-dev
-      - libfribidi-dev
-      - libfreetype6-dev
-      - libhdf5-dev
-      - libfftw3-dev
-      - libudunits2-dev
-      - libproj-dev
-      - libgeos-dev
-      - libgdal-dev
-      - libxt-dev
-      - xorg-dev
-      - texinfo
-      - texlive-base
-      - texlive-latex-base
-      - texlive-fonts-recommended
-      - texlive-fonts-extra
-      - texlive-latex-extra
-      - pandoc
+    - build-essential
+    - libcurl4-openssl-dev
+    - libxml2-dev
+    - libssl-dev
+    - libfontconfig1-dev
+    - libbz2-dev
+    - liblzma-dev
+    - libpcre2-dev
+    - libpng-dev
+    - libjpeg-dev
+    - libtiff-dev
+    - libicu-dev
+    - libgmp-dev
+    - libgsl-dev
+    - libmagick++-dev
+    - zlib1g-dev
+    - libharfbuzz-dev
+    - libfribidi-dev
+    - libfreetype6-dev
+    - libhdf5-dev
+    - libfftw3-dev
+    - libudunits2-dev
+    - libproj-dev
+    - libgeos-dev
+    - libgdal-dev
+    - libxt-dev
+    - xorg-dev
+    - texinfo
+    - texlive-base
+    - texlive-latex-base
+    - texlive-fonts-recommended
+    - texlive-fonts-extra
+    - texlive-latex-extra
+    - pandoc
 
     r_packages:
-      # Optional R packages
-      - name: devtools
-      - name: pak
-      - name: rio
-      - name: tidyverse
-      - name: easystats
-      - name: fusen
-      - name: janitor
-      - name: renv
-      - name: shiny
-      - name: sinew
-      - name: attachment
-      - name: styler
-      - name: golem
+    - name: devtools
+    - name: pak
+    - name: rio
+    - name: tidyverse
+    - name: easystats
+    - name: fusen
+    - name: janitor
+    - name: renv
+    - name: shiny
+    - name: sinew
+    - name: attachment
+    - name: styler
+    - name: golem
 
-    rstudio_user: fd # Replace with the target RStudio user's name
+    rstudio_user: fd # Replace with target RStudio user's name
 
     preferences:
-      # Configurations for RStudio
-      save_workspace: never
+      save_workspace: "never"
       load_workspace: false
       always_save_history: false
       restore_last_project: false
-      jobs_tab_visibility: shown
+      jobs_tab_visibility: "shown"
       insert_matching: false
       insert_native_pipe_operator: true
       highlight_selected_line: true
@@ -82,85 +79,84 @@
       syntax_color_console: true
       auto_expand_error_tracebacks: true
       console_double_click_select: true
-      editor_theme: Idle Fingers
+      editor_theme: "Idle Fingers"
       help_font_size_points: 11
       font_size_points: 12
       visual_markdown_editing_show_doc_outline: false
       visual_markdown_editing_show_margin: true
-      spelling_dictionary_language: en_GB
+      spelling_dictionary_language: "en_GB"
       panes:
         quadrants:
-          - Source
-          - Console
-          - TabSet1
-          - TabSet2
+        - Source
+        - Console
+        - TabSet1
+        - TabSet2
         tabSet1:
-          - Environment
-          - History
-          - Build
-          - VCS
-          - Connections
-          - Presentation
+        - Environment
+        - History
+        - Build
+        - VCS
+        - Connections
+        - Presentation
         tabSet2:
-          - Files
-          - Plots
-          - Packages
-          - Help
-          - Viewer
-          - Presentations
+        - Files
+        - Plots
+        - Packages
+        - Help
+        - Viewer
+        - Presentations
         hiddenTabSet:
-          - Tutorial
+        - Tutorial
         console_left_on_top: false
         console_right_on_top: true
         additional_source_columns: 0
       show_invisibles: true
       source_with_echo: true
       show_hidden_files: true
-      rmd_viewer_type: pane
-      global_theme: alternate
+      rmd_viewer_type: "pane"
+      global_theme: "alternate"
 
     keybindings:
-      # Keybindings
-      styler::style_active_file: Ctrl+-
-      golem::run_dev: Ctrl++
-      devtools::test_active_file: Ctrl+T
+      styler::style_active_file: "Ctrl+-"
+      golem::run_dev: "Ctrl++"
+      devtools::test_active_file: "Ctrl+T"
 
   tasks:
-    - name: Ensure the RStudio preferences directory exists
-      ansible.builtin.file:
-        path: /home/{{ rstudio_user }}/.config/rstudio
-        state: directory
-        mode: "0755"
-        owner: "{{ rstudio_user }}"
-        group: "{{ rstudio_user }}"
+  - name: Ensure the RStudio preferences directory exists
+    ansible.builtin.file:
+      path: /home/{{ rstudio_user }}/.config/rstudio
+      state: directory
+      mode: "0755"
+      owner: "{{ rstudio_user }}"
+      group: "{{ rstudio_user }}"
 
-    - name: Create or update rstudio-prefs.json
-      ansible.builtin.copy:
-        dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
-        content: |
-          {{ preferences | to_nice_json }}
-        owner: "{{ rstudio_user }}"
-        group: "{{ rstudio_user }}"
-        mode: "0644"
+  - name: Create or update rstudio-prefs.json
+    ansible.builtin.copy:
+      dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
+      content: |
+        {{ preferences | to_nice_json }}
+      owner: "{{ rstudio_user }}"
+      group: "{{ rstudio_user }}"
+      mode: "0644"
 
-    - name: Ensure the keybindings directory exists
-      ansible.builtin.file:
-        path: /home/{{ rstudio_user }}/.config/rstudio/keybindings
-        state: directory
-        mode: "0755"
-        owner: "{{ rstudio_user }}"
-        group: "{{ rstudio_user }}"
+  - name: Ensure the keybindings directory exists
+    ansible.builtin.file:
+      path: /home/{{ rstudio_user }}/.config/rstudio/keybindings
+      state: directory
+      mode: "0755"
+      owner: "{{ rstudio_user }}"
+      group: "{{ rstudio_user }}"
 
-    - name: Create or update addins.json
-      ansible.builtin.copy:
-        dest: /home/{{ rstudio_user }}/.config/rstudio/keybindings/addins.json
-        content: |
-          {{ keybindings | to_nice_json }}
-        owner: "{{ rstudio_user }}"
-        group: "{{ rstudio_user }}"
-        mode: "0644"
+  - name: Create or update addins.json
+    ansible.builtin.copy:
+      dest: /home/{{ rstudio_user }}/.config/rstudio/keybindings/addins.json
+      content: |
+        {{ keybindings | to_nice_json }}
+      owner: "{{ rstudio_user }}"
+      group: "{{ rstudio_user }}"
+      mode: "0644"
 
-    - name: Restart RStudio Server
-      ansible.builtin.service:
-        name: rstudio-server
-        state: restarted
+  - name: Restart RStudio Server
+    ansible.builtin.service:
+      name: rstudio-server
+      state: restarted
