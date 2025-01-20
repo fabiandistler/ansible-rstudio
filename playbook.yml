@@ -1,6 +1,7 @@
 ---
 - name: Setup R and RStudio Server on localhost
   hosts: localhost
+  become: true
   connection: local
   roles: # Install with ansible-galaxy install -r requirements.yml
   - r # Installs R
