@@ -4,8 +4,8 @@
   become: true
   connection: local
   roles: # Install with ansible-galaxy install -r requirements.yml
-  - r # Installs R
-  - rstudio-server # Installs RStudio Server and deploys
+    - r # Installs R
+    - rstudio-server # Installs RStudio Server and deploys
 
   vars:
     r_install_dev: true # Allow building R from source
@@ -46,22 +46,13 @@
     - texlive-latex-extra
     - pandoc
 
-    # r_packages: TODO: seems to freeze sometimes
-    # - name: devtools
-    # - name: pak
-    # - name: rio
-    # - name: tidyverse
-    # - name: easystats
-    # - name: fusen
-    # - name: janitor
-    # - name: renv
-    # - name: shiny
-    # - name: sinew
-    # - name: attachment
-    # - name: styler
-    # - name: golem
+    # R packages installation disabled due to freezing issues
+    # Enable by uncommenting and adding packages as needed:
+    # r_packages:
+    #   - name: devtools
+    #   - name: tidyverse
 
-    rstudio_user: fd # Replace with target RStudio user's name
+    rstudio_user: "{{ ansible_user | default('fd') }}" # Replace with target RStudio user's name
 
     preferences:
       save_workspace: "never"
@@ -131,6 +122,21 @@
       owner: "{{ rstudio_user }}"
       group: "{{ rstudio_user }}"
 
+  - name: Check if rstudio-prefs.json already exists
+    ansible.builtin.stat:
+      path: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
+    register: rstudio_prefs_stat
+
+  - name: Backup existing rstudio-prefs.json
+    ansible.builtin.copy:
+      src: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
+      dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json.backup.{{ ansible_date_time.epoch }}
+      remote_src: true
+      owner: "{{ rstudio_user }}"
+      group: "{{ rstudio_user }}"
+      mode: "0644"
+    when: rstudio_prefs_stat.stat.exists
+
   - name: Create or update rstudio-prefs.json
     ansible.builtin.copy:
       dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
@@ -139,6 +145,7 @@
       owner: "{{ rstudio_user }}"
       group: "{{ rstudio_user }}"
       mode: "0644"
+    notify: restart rstudio-server
 
   - name: Ensure the keybindings directory exists
     ansible.builtin.file:
@@ -161,3 +168,27 @@
     ansible.builtin.service:
       name: rstudio-server
       state: restarted
+    register: rstudio_restart_result
+    failed_when: rstudio_restart_result.failed
+
+  - name: Verify RStudio Server is running
+    ansible.builtin.service:
+      name: rstudio-server
+      state: started
+    register: rstudio_status
+    retries: 3
+    delay: 5
+    until: rstudio_status is succeeded
+
+  - name: Display RStudio Server access information
+    ansible.builtin.debug:
+      msg:
+        - "RStudio Server is now running!"
+        - "Access it at: http://localhost:8787/"
+        - "Login with your Linux user credentials (user: {{ rstudio_user }})"
+
+  handlers:
+    - name: restart rstudio-server
+      ansible.builtin.service:
+        name: rstudio-server
+        state: restarted
