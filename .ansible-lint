@@ -1,0 +1,29 @@
+# Ansible Lint Configuration
+---
+profile: production
+
+exclude_paths:
+  - .cache/
+  - .github/
+  - molecule/
+  - .ansible-lint
+
+# Enable offline mode to prevent downloading roles
+offline: true
+
+# Skip specific rules if needed
+skip_list:
+  - yaml[line-length]  # Allow longer lines for complex configurations
+  - name[casing]       # Allow flexible task naming
+
+# Set warning level
+warn_list:
+  - experimental
+  - jinja[spacing]
+
+# Configure rule-specific settings
+rules:
+  line-length:
+    max: 120
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true

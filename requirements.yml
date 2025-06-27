@@ -1,7 +1,10 @@
-# Install with ansible-galaxy install -r requirements.yml# Install a role from GitHub
+# Install with ansible-galaxy install -r requirements.yml
+# Install roles from GitHub with version pinning for reproducibility
+
 - name: r
   src: https://github.com/Oefenweb/ansible-r
+  version: master # Consider pinning to specific tag/commit for production
 
-  # Install a role from GitHub
 - name: rstudio-server
   src: https://github.com/Oefenweb/ansible-rstudio-server
+  version: master # Consider pinning to specific tag/commit for production
