@@ -20,20 +20,21 @@ Automated installation and configuration of R and RStudio Server on localhost us
    cd ansible-rstudio
    ```
 
-2. **Install required Ansible roles**
+2. **Install required Ansible roles (as user, not sudo)**
 
    ```bash
+   # Install roles as your user (NOT with sudo)
    ansible-galaxy install -r requirements.yml
    ```
 
-3. **Run the playbook**
+3. **Run the playbook with sudo privileges**
 
    ```bash
-   # Use default user (current user)
-   ansible-playbook -i inventory.ini playbook.yml
+   # Use default user (current user) with sudo prompt
+   ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
    
-   # Or specify target user
-   ansible-playbook -i inventory.ini playbook.yml -e rstudio_user=username
+   # Or specify target user with sudo prompt
+   ansible-playbook -i inventory.ini playbook.yml -e rstudio_user=username --ask-become-pass
    ```
 
 4. **Access RStudio Server**
@@ -52,14 +53,25 @@ ansible-playbook -i inventory.ini playbook.yml -e rstudio_user=your_username
 
 ### R Packages
 
-R package installation is disabled by default due to potential freezing issues. To enable:
+R package installation has dependency requirements. The playbook includes essential packages:
 
 ```yaml
 r_packages:
+  - name: withr        # Required dependency for devtools
   - name: devtools
-  - name: tidyverse
-  # Add more packages as needed
 ```
+
+**Large packages like tidyverse:** Install manually after the playbook for better control:
+
+```bash
+# After playbook completion, install large packages in R:
+sudo R -e "install.packages(c('tidyverse'), dependencies=TRUE, repos='https://cloud.r-project.org')"
+```
+
+**Common package dependencies:**
+- `devtools` requires `withr` (already included)
+- `tidyverse` has 80+ dependencies (install manually)
+- Bioconductor packages need `type: bioconductor`
 
 ### Custom Preferences
 
@@ -93,14 +105,29 @@ Custom keyboard shortcuts are configured in the `keybindings` variable:
 
 ### Permission Issues
 
-Ensure the target user exists and you have sudo privileges:
+**Common Issue: Roles installed with sudo**
+
+If you installed roles with `sudo ansible-galaxy install`, they are installed for root only. Fix this:
+
+```bash
+# Remove roles installed as root
+sudo rm -rf /root/.ansible/roles/r /root/.ansible/roles/rstudio-server
+
+# Install roles as your user (without sudo)
+ansible-galaxy install -r requirements.yml
+
+# Run playbook with sudo prompt
+ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
+```
+
+**User verification:**
 
 ```bash
 # Check user exists
 id username
 
-# Run with explicit sudo
-ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
+# Check roles are installed for your user
+ls ~/.ansible/roles/
 ```
 
 ### Service Issues
@@ -145,6 +172,19 @@ ansible-playbook -i inventory.ini playbook.yml --check
 - Ubuntu/Debian Linux (tested)
 - Sudo privileges
 - Internet connection for downloading roles and packages
+
+## Important Notes
+
+**Role Installation:** Always install Ansible roles as your user (without sudo):
+```bash
+ansible-galaxy install -r requirements.yml  # ✅ Correct
+sudo ansible-galaxy install -r requirements.yml  # ❌ Wrong - installs for root only
+```
+
+**Playbook Execution:** Use `--ask-become-pass` to provide sudo when needed:
+```bash
+ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
+```
 
 ## External Dependencies
 

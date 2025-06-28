@@ -46,10 +46,6 @@
       - texlive-latex-extra
       - pandoc
 
-    r_packages:
-      - name: devtools
-      - name: tidyverse
-
     rstudio_user: "{{ ansible_user | default('fabian') }}" # Replace with target RStudio user's name
 
     preferences:
@@ -119,11 +115,13 @@
         mode: "0755"
         owner: "{{ rstudio_user }}"
         group: "{{ rstudio_user }}"
+      become: false
 
     - name: Check if rstudio-prefs.json already exists
       ansible.builtin.stat:
         path: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
       register: rstudio_prefs_stat
+      become: false
 
     - name: Backup existing rstudio-prefs.json
       ansible.builtin.copy:
@@ -134,6 +132,7 @@
         group: "{{ rstudio_user }}"
         mode: "0644"
       when: rstudio_prefs_stat.stat.exists
+      become: false
 
     - name: Create or update rstudio-prefs.json
       ansible.builtin.copy:
@@ -144,6 +143,7 @@
         group: "{{ rstudio_user }}"
         mode: "0644"
       notify: restart rstudio-server
+      become: false
 
     - name: Ensure the keybindings directory exists
       ansible.builtin.file:
@@ -152,6 +152,7 @@
         mode: "0755"
         owner: "{{ rstudio_user }}"
         group: "{{ rstudio_user }}"
+      become: false
 
     - name: Create or update addins.json
       ansible.builtin.copy:
@@ -161,6 +162,7 @@
         owner: "{{ rstudio_user }}"
         group: "{{ rstudio_user }}"
         mode: "0644"
+      become: false
 
     - name: Restart RStudio Server
       ansible.builtin.service:
