@@ -51,28 +51,6 @@ The playbook uses `ansible_user` by default, with fallback to `fabian`. Override
 ansible-playbook -i inventory.ini playbook.yml -e rstudio_user=your_username
 ```
 
-### R Packages
-
-R package installation has dependency requirements. The playbook includes essential packages:
-
-```yaml
-r_packages:
-  - name: withr        # Required dependency for devtools
-  - name: devtools
-```
-
-**Large packages like tidyverse:** Install manually after the playbook for better control:
-
-```bash
-# After playbook completion, install large packages in R:
-sudo R -e "install.packages(c('tidyverse'), dependencies=TRUE, repos='https://cloud.r-project.org')"
-```
-
-**Common package dependencies:**
-- `devtools` requires `withr` (already included)
-- `tidyverse` has 80+ dependencies (install manually)
-- Bioconductor packages need `type: bioconductor`
-
 ### Custom Preferences
 
 Modify the `preferences` variable in `playbook.yml` to customize:
@@ -176,12 +154,14 @@ ansible-playbook -i inventory.ini playbook.yml --check
 ## Important Notes
 
 **Role Installation:** Always install Ansible roles as your user (without sudo):
+
 ```bash
 ansible-galaxy install -r requirements.yml  # ✅ Correct
 sudo ansible-galaxy install -r requirements.yml  # ❌ Wrong - installs for root only
 ```
 
 **Playbook Execution:** Use `--ask-become-pass` to provide sudo when needed:
+
 ```bash
 ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
 ```
