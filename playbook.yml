@@ -164,7 +164,6 @@
         mode: "0644"
       become: false
 
-
     - name: Verify RStudio Server is running
       ansible.builtin.service:
         name: rstudio-server
@@ -178,7 +177,6 @@
       ansible.builtin.debug:
         msg:
           - "RStudio Server is now running!"
-      until: rstudio_status.state == 'started'
           - "Login with your Linux user credentials (user: {{ rstudio_user }})"
 
   handlers:
