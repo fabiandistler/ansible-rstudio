@@ -4,64 +4,53 @@
   become: true
   connection: local
   roles: # Install with ansible-galaxy install -r requirements.yml
-  - r # Installs R
-  - rstudio-server # Installs RStudio Server and deploys
+    - r # Installs R
+    - rstudio-server # Installs RStudio Server and deploys
 
   vars:
     r_install_dev: true # Allow building R from source
 
     r_install:
-    - build-essential
-    - libcurl4-openssl-dev
-    - libxml2-dev
-    - libssl-dev
-    - libfontconfig1-dev
-    - libbz2-dev
-    - liblzma-dev
-    - libpcre2-dev
-    - libpng-dev
-    - libjpeg-dev
-    - libtiff-dev
-    - libicu-dev
-    - libgmp-dev
-    - libgsl-dev
-    - libmagick++-dev
-    - zlib1g-dev
-    - libharfbuzz-dev
-    - libfribidi-dev
-    - libfreetype6-dev
-    - libhdf5-dev
-    - libfftw3-dev
-    - libudunits2-dev
-    - libproj-dev
-    - libgeos-dev
-    - libgdal-dev
-    - libxt-dev
-    - xorg-dev
-    - texinfo
-    - texlive-base
-    - texlive-latex-base
-    - texlive-fonts-recommended
-    - texlive-fonts-extra
-    - texlive-latex-extra
-    - pandoc
+      - build-essential
+      - libcurl4-openssl-dev
+      - libxml2-dev
+      - libssl-dev
+      - libfontconfig1-dev
+      - libbz2-dev
+      - liblzma-dev
+      - libpcre2-dev
+      - libpng-dev
+      - libjpeg-dev
+      - libtiff-dev
+      - libicu-dev
+      - libgmp-dev
+      - libgsl-dev
+      - libmagick++-dev
+      - zlib1g-dev
+      - libharfbuzz-dev
+      - libfribidi-dev
+      - libfreetype6-dev
+      - libhdf5-dev
+      - libfftw3-dev
+      - libudunits2-dev
+      - libproj-dev
+      - libgeos-dev
+      - libgdal-dev
+      - libxt-dev
+      - xorg-dev
+      - texinfo
+      - texlive-base
+      - texlive-latex-base
+      - texlive-fonts-recommended
+      - texlive-fonts-extra
+      - texlive-latex-extra
+      - pandoc
 
-    # r_packages: TODO: seems to freeze sometimes
-    # - name: devtools
-    # - name: pak
-    # - name: rio
-    # - name: tidyverse
-    # - name: easystats
-    # - name: fusen
-    # - name: janitor
-    # - name: renv
-    # - name: shiny
-    # - name: sinew
-    # - name: attachment
-    # - name: styler
-    # - name: golem
+    r_packages:
+      - name: devtools
+      - name: tidyverse
 
-    rstudio_user: fd # Replace with target RStudio user's name
+    rstudio_user: "{{ ansible_user | default('fabian') }}" # Replace with target RStudio user's name
 
     preferences:
       save_workspace: "never"
@@ -88,26 +77,26 @@
       spelling_dictionary_language: "en_GB"
       panes:
         quadrants:
-        - Source
-        - Console
-        - TabSet1
-        - TabSet2
+          - Source
+          - Console
+          - TabSet1
+          - TabSet2
         tabSet1:
-        - Environment
-        - History
-        - Build
-        - VCS
-        - Connections
-        - Presentation
+          - Environment
+          - History
+          - Build
+          - VCS
+          - Connections
+          - Presentation
         tabSet2:
-        - Files
-        - Plots
-        - Packages
-        - Help
-        - Viewer
-        - Presentations
+          - Files
+          - Plots
+          - Packages
+          - Help
+          - Viewer
+          - Presentations
         hiddenTabSet:
-        - Tutorial
+          - Tutorial
         console_left_on_top: false
         console_right_on_top: true
         additional_source_columns: 0
@@ -123,41 +112,81 @@
       devtools::test_active_file: "Ctrl+T"
 
   tasks:
-  - name: Ensure the RStudio preferences directory exists
-    ansible.builtin.file:
-      path: /home/{{ rstudio_user }}/.config/rstudio
-      state: directory
-      mode: "0755"
-      owner: "{{ rstudio_user }}"
-      group: "{{ rstudio_user }}"
+    - name: Ensure the RStudio preferences directory exists
+      ansible.builtin.file:
+        path: /home/{{ rstudio_user }}/.config/rstudio
+        state: directory
+        mode: "0755"
+        owner: "{{ rstudio_user }}"
+        group: "{{ rstudio_user }}"
 
-  - name: Create or update rstudio-prefs.json
-    ansible.builtin.copy:
-      dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
-      content: |
-        {{ preferences | to_nice_json }}
-      owner: "{{ rstudio_user }}"
-      group: "{{ rstudio_user }}"
-      mode: "0644"
+    - name: Check if rstudio-prefs.json already exists
+      ansible.builtin.stat:
+        path: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
+      register: rstudio_prefs_stat
 
-  - name: Ensure the keybindings directory exists
-    ansible.builtin.file:
-      path: /home/{{ rstudio_user }}/.config/rstudio/keybindings
-      state: directory
-      mode: "0755"
-      owner: "{{ rstudio_user }}"
-      group: "{{ rstudio_user }}"
+    - name: Backup existing rstudio-prefs.json
+      ansible.builtin.copy:
+        src: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
+        dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json.backup.{{ ansible_date_time.epoch }}
+        remote_src: true
+        owner: "{{ rstudio_user }}"
+        group: "{{ rstudio_user }}"
+        mode: "0644"
+      when: rstudio_prefs_stat.stat.exists
 
-  - name: Create or update addins.json
-    ansible.builtin.copy:
-      dest: /home/{{ rstudio_user }}/.config/rstudio/keybindings/addins.json
-      content: |
-        {{ keybindings | to_nice_json }}
-      owner: "{{ rstudio_user }}"
-      group: "{{ rstudio_user }}"
-      mode: "0644"
+    - name: Create or update rstudio-prefs.json
+      ansible.builtin.copy:
+        dest: /home/{{ rstudio_user }}/.config/rstudio/rstudio-prefs.json
+        content: |
+          {{ preferences | to_nice_json }}
+        owner: "{{ rstudio_user }}"
+        group: "{{ rstudio_user }}"
+        mode: "0644"
+      notify: restart rstudio-server
 
-  - name: Restart RStudio Server
-    ansible.builtin.service:
-      name: rstudio-server
-      state: restarted
+    - name: Ensure the keybindings directory exists
+      ansible.builtin.file:
+        path: /home/{{ rstudio_user }}/.config/rstudio/keybindings
+        state: directory
+        mode: "0755"
+        owner: "{{ rstudio_user }}"
+        group: "{{ rstudio_user }}"
+
+    - name: Create or update addins.json
+      ansible.builtin.copy:
+        dest: /home/{{ rstudio_user }}/.config/rstudio/keybindings/addins.json
+        content: |
+          {{ keybindings | to_nice_json }}
+        owner: "{{ rstudio_user }}"
+        group: "{{ rstudio_user }}"
+        mode: "0644"
+
+    - name: Restart RStudio Server
+      ansible.builtin.service:
+        name: rstudio-server
+        state: restarted
+      register: rstudio_restart_result
+      failed_when: rstudio_restart_result.failed
+
+    - name: Verify RStudio Server is running
+      ansible.builtin.service:
+        name: rstudio-server
+        state: started
+      register: rstudio_status
+      retries: 3
+      delay: 5
+      until: rstudio_status is succeeded
+
+    - name: Display RStudio Server access information
+      ansible.builtin.debug:
+        msg:
+          - "RStudio Server is now running!"
+          - "Access it at: http://localhost:8787/"
+          - "Login with your Linux user credentials (user: {{ rstudio_user }})"
+
+  handlers:
+    - name: restart rstudio-server
+      ansible.builtin.service:
+        name: rstudio-server
+        state: restarted
