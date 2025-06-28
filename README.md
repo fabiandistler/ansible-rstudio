@@ -20,6 +20,7 @@ Automated installation and configuration of R and RStudio Server on localhost us
    cd ansible-rstudio
    ```
 
+
 2. **Install required Ansible roles (as user, not sudo)**
 
    ```bash
@@ -45,7 +46,9 @@ Automated installation and configuration of R and RStudio Server on localhost us
 
 ### User Settings
 
+
 The playbook uses `ansible_user` by default, with fallback to `fabian`. Override with:
+
 
 ```bash
 ansible-playbook -i inventory.ini playbook.yml -e rstudio_user=your_username
@@ -104,6 +107,7 @@ ansible-playbook -i inventory.ini playbook.yml --ask-become-pass
 # Check user exists
 id username
 
+
 # Check roles are installed for your user
 ls ~/.ansible/roles/
 ```
@@ -150,6 +154,7 @@ ansible-playbook -i inventory.ini playbook.yml --check
 - Ubuntu/Debian Linux (tested)
 - Sudo privileges
 - Internet connection for downloading roles and packages
+
 
 ## Important Notes
 
