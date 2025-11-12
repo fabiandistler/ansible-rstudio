@@ -44,8 +44,13 @@ The playbook consists of two main components:
    - `r` (v3.1.11): Installs R and development dependencies from Oefenweb/ansible-r
    - `rstudio-server` (v5.2.0): Installs RStudio Server from Oefenweb/ansible-rstudio-server
 
-2. **Custom Configuration Tasks** (in `playbook.yml`):
-   - Pre-flight validation (user exists, roles installed)
+2. **Pre-flight Validation** (in `pre_tasks` section):
+   - Verifies target user exists using getent (runs BEFORE roles)
+   - Checks that required Ansible roles are installed
+   - Provides helpful error messages with actionable guidance
+   - Prevents cryptic role loading errors
+
+3. **Custom Configuration Tasks** (in `tasks` section):
    - Creates RStudio user preferences (`rstudio-prefs.json`) with backup
    - Sets up custom keybindings (`addins.json`) with backup
    - Manages RStudio Server service with retries

@@ -8,10 +8,10 @@ Automated installation and configuration of R and RStudio Server on localhost us
 - ✅ Deploys RStudio Server with optimized configuration
 - ✅ Configures custom IDE preferences and keybindings
 - ✅ Automatic backup of existing configurations (timestamped)
-- ✅ Pre-flight validation (user exists, roles installed)
+- ✅ Pre-flight validation with helpful error messages (user exists, roles installed)
 - ✅ Error handling and service verification with retries
 - ✅ Task tagging for selective execution
-- ✅ Pinned role versions for reproducibility
+- ✅ Pinned role versions for reproducibility (ansible-r v3.1.11, rstudio-server v5.2.0)
 - ✅ Comprehensive documentation with package explanations
 
 ## Quick Start

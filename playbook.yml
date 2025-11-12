@@ -3,6 +3,80 @@
   hosts: localhost
   become: true
   connection: local
+  pre_tasks:
+    # Pre-flight validation checks (run BEFORE roles)
+    - name: Verify target user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ rstudio_user }}"
+      register: user_exists
+      failed_when: false
+      become: false
+      tags:
+        - always
+        - preflight
+
+    - name: Fail if user does not exist
+      ansible.builtin.fail:
+        msg: "User '{{ rstudio_user }}' does not exist. Create the user first or specify a different user with -e rstudio_user=username"
+      when: user_exists.ansible_facts.getent_passwd is not defined or rstudio_user not in user_exists.ansible_facts.getent_passwd
+      tags:
+        - always
+        - preflight
+
+    - name: Check if roles directory exists
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.ansible/roles"
+      register: roles_dir
+      become: false
+      tags:
+        - always
+        - preflight
+
+    - name: Check if 'r' role is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.ansible/roles/r"
+      register: role_r
+      become: false
+      when: roles_dir.stat.exists
+      tags:
+        - always
+        - preflight
+
+    - name: Check if 'rstudio-server' role is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.ansible/roles/rstudio-server"
+      register: role_rstudio
+      become: false
+      when: roles_dir.stat.exists
+      tags:
+        - always
+        - preflight
+
+    - name: Fail if roles are not installed
+      ansible.builtin.fail:
+        msg: |
+          Required Ansible roles are not installed.
+          Please run: ansible-galaxy install -r requirements.yml
+          (Make sure to run WITHOUT sudo - roles should be installed for your user)
+      when: >
+        not roles_dir.stat.exists or
+        not role_r.stat.exists or
+        not role_rstudio.stat.exists
+      tags:
+        - always
+        - preflight
+
+    - name: Display detected user information
+      ansible.builtin.debug:
+        msg:
+          - "Pre-flight checks passed!"
+          - "Configuring RStudio for user: {{ rstudio_user }}"
+          - "User home directory: /home/{{ rstudio_user }}"
+      tags:
+        - always
+        - preflight
+
   roles: # Install with ansible-galaxy install -r requirements.yml
     - r # Installs R
     - rstudio-server # Installs RStudio Server and deploys
@@ -125,38 +199,6 @@
       devtools::test_active_file: "Ctrl+T"
 
   tasks:
-    # Pre-flight checks
-    - name: Verify target user exists
-      ansible.builtin.command: id {{ rstudio_user }}
-      register: user_check
-      changed_when: false
-      failed_when: user_check.rc != 0
-      tags:
-        - always
-        - preflight
-
-    - name: Check if required roles are available
-      ansible.builtin.stat:
-        path: "{{ ansible_env.HOME }}/.ansible/roles/{{ item }}"
-      register: role_check
-      loop:
-        - r
-        - rstudio-server
-      failed_when: not role_check.stat.exists
-      become: false
-      tags:
-        - always
-        - preflight
-
-    - name: Display detected user information
-      ansible.builtin.debug:
-        msg:
-          - "Configuring RStudio for user: {{ rstudio_user }}"
-          - "User home directory: /home/{{ rstudio_user }}"
-      tags:
-        - always
-        - preflight
-
     # RStudio configuration tasks
     - name: Ensure the RStudio preferences directory exists
       ansible.builtin.file:
