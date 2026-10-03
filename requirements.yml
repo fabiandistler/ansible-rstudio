@@ -1,10 +1,10 @@
 # Install with ansible-galaxy install -r requirements.yml
-# Install roles from GitHub with version pinning for reproducibility
+# Roles from GitHub with version pinning for reproducibility
 
 - name: r
   src: https://github.com/Oefenweb/ansible-r
-  version: master # Consider pinning to specific tag/commit for production
+  version: v3.1.11  # Pinned to stable release (Dec 2024)
 
 - name: rstudio-server
   src: https://github.com/Oefenweb/ansible-rstudio-server
-  version: master # Consider pinning to specific tag/commit for production
+  version: v5.2.0  # Pinned to stable release (Jun 2025)
